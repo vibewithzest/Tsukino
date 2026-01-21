@@ -89,44 +89,43 @@ const referer = headers.Referer || "https://megacloud.tv/";
       <div class="player-container" id="player-container">
         {
           error || !hasValidSource ? (
-            <div class="player-wrapper">
-              {/* Try iframe embed first if available */}
-              {sources?.embedUrl ? (
-                <iframe
-                  src={sources.embedUrl}
-                  class="embed-player"
-                  allowfullscreen
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  frameborder="0"
-                />
-              ) : externalUrl ? (
-                <iframe
-                  src={externalUrl}
-                  class="embed-player"
-                  allowfullscreen
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  frameborder="0"
-                />
-              ) : (
-                <div class="player-error">
+            <div class="player-error">
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                width="48"
+                height="48"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              </svg>
+              <p>Unable to load video source</p>
+              <p class="error-hint">
+                This may be due to regional restrictions or the source being
+                unavailable.
+              </p>
+              {externalUrl && (
+                <a
+                  href={externalUrl}
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn-primary"
+                >
                   <svg
                     viewBox="0 0 24 24"
-                    fill="currentColor"
-                    width="48"
-                    height="48"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="18"
+                    height="18"
                   >
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
                   </svg>
-                  <p>Unable to load video source</p>
-                  <p class="error-hint">
-                    This may be due to regional restrictions or the source being
-                    unavailable.
-                  </p>
-                  <a href="/" class="btn btn-ghost">
-                    Back to Home
-                  </a>
-                </div>
+                  Watch on External Site
+                </a>
               )}
+              <a href="/" class="btn btn-ghost">
+                Back to Home
+              </a>
             </div>
           ) : (
             <VideoPlayer

@@ -16,14 +16,24 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     try {
-        // Fetch the video/manifest with required headers
+        // Generate a random IP for X-Forwarded-For to bypass simple IP rate limits/blocks
+        const randomIP = Array(4).fill(0).map(() => Math.floor(Math.random() * 255)).join('.');
+
+        // Fetch the video/manifest with enhanced browser-like headers
         const response = await fetch(videoUrl, {
             headers: {
                 'Referer': referer,
                 'Origin': new URL(referer).origin,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
                 'Accept': '*/*',
                 'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'cross-site',
+                'X-Forwarded-For': randomIP,
+                'X-Real-IP': randomIP
             },
         });
 
