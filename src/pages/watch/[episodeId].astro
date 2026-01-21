@@ -53,7 +53,23 @@ const videoSources = sources?.sources || [];
 const subtitles =
   sources?.subtitles?.filter((s: any) => s.kind === "captions") || [];
 const headers = sources?.headers || {};
-const externalUrl = currentEpisode?.url || null;
+
+// Construct fallback URL manually if API fails
+// Format: anime-id$ep=N -> https://hianime.to/watch/anime-id?ep=N
+// Or for AnimeKai: https://anikai.to/watch/anime-id?ep=N
+// We'll use a generic search/watch link as safest bet
+let fallbackUrl = "";
+try {
+  const [id, epParam] = episodeId.split("$ep=");
+  if (id && epParam) {
+    const epNum = epParam.split("$")[0];
+    fallbackUrl = `https://hianime.to/watch/${id}?ep=${epNum}`;
+  }
+} catch (e) {
+  console.log("Error constructing fallback URL", e);
+}
+
+const externalUrl = currentEpisode?.url || fallbackUrl || null;
 
 // Find download URL if available
 const downloadUrl = sources?.download || "";
