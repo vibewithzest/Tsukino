@@ -1,0 +1,166 @@
+---
+export const prerender = false;
+
+import Layout from "../../layouts/Layout.astro";
+import Navbar from "../../components/Navbar.svelte";
+import { getGenres } from "../../lib/api";
+
+let genres: string[] = [];
+let error = false;
+
+try {
+    genres = await getGenres();
+} catch (e) {
+    error = true;
+}
+
+// Genre icons mapping
+const genreIcons: Record<string, string> = {
+    Action: "⚔️",
+    Adventure: "🗺️",
+    Comedy: "😂",
+    Drama: "🎭",
+    Fantasy: "🧙",
+    Horror: "👻",
+    Mystery: "🔍",
+    Romance: "💕",
+    "Sci-Fi": "🚀",
+    "Slice of Life": "☕",
+    Sports: "⚽",
+    Supernatural: "👁️",
+    Thriller: "😱",
+    Ecchi: "💋",
+    Harem: "💝",
+    Isekai: "🌀",
+    Mecha: "🤖",
+    Music: "🎵",
+    Psychological: "🧠",
+    School: "🏫",
+    Shounen: "💪",
+    Shoujo: "🌸",
+    Military: "🎖️",
+    Historical: "📜",
+    Magic: "✨",
+    "Martial Arts": "🥋",
+    Demons: "👹",
+    Game: "🎮",
+    Kids: "👶",
+    Parody: "🎪",
+    Police: "👮",
+    Samurai: "⚔️",
+    Space: "🌌",
+    "Super Power": "💥",
+    Vampire: "🧛",
+    Seinen: "🔥",
+    Josei: "💐",
+    Cars: "🚗",
+};
+
+function getIcon(genre: string): string {
+    return genreIcons[genre] || "🎬";
+}
+---
+
+<Layout title="Genres - Tsukino">
+    <Navbar client:load />
+
+    <main class="container genres-page">
+        <header class="page-header">
+            <h1>🎭 Browse by Genre</h1>
+            <p class="subtitle">Find anime by your favorite genre</p>
+        </header>
+
+        {
+            error ? (
+                <div class="error-state">
+                    <p>Failed to load genres. Please try again.</p>
+                    <a href="/genres" class="btn btn-primary">
+                        Retry
+                    </a>
+                </div>
+            ) : (
+                <div class="genres-grid">
+                    {genres.map((genre) => (
+                        <a
+                            href={`/genres/${encodeURIComponent(genre.toLowerCase())}`}
+                            class="genre-card"
+                        >
+                            <span class="genre-icon">{getIcon(genre)}</span>
+                            <span class="genre-name">{genre}</span>
+                        </a>
+                    ))}
+                </div>
+            )
+        }
+    </main>
+</Layout>
+
+<style>
+    .genres-page {
+        padding-top: var(--spacing-2xl);
+        padding-bottom: var(--spacing-2xl);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .subtitle {
+        color: var(--color-text-secondary);
+    }
+
+    .genres-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: var(--spacing-md);
+    }
+
+    .genre-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-lg);
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        text-decoration: none;
+        transition: all var(--transition-fast);
+    }
+
+    .genre-card:hover {
+        background: var(--color-bg-glass);
+        border-color: var(--color-accent);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(34, 197, 94, 0.15);
+    }
+
+    .genre-icon {
+        font-size: 2rem;
+    }
+
+    .genre-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        text-align: center;
+    }
+
+    .error-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-2xl);
+        color: var(--color-text-muted);
+    }
+</style>

@@ -1,0 +1,201 @@
+---
+export const prerender = false;
+
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.svelte";
+import AnimeCard from "../components/AnimeCard.svelte";
+import { getSchedule } from "../lib/api";
+
+// Get dates for the week
+const today = new Date();
+const days = [];
+for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    days.push({
+        date: date.toISOString().split("T")[0],
+        label:
+            i === 0
+                ? "Today"
+                : i === 1
+                  ? "Tomorrow"
+                  : date.toLocaleDateString("en-US", { weekday: "short" }),
+        fullLabel: date.toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "short",
+            day: "numeric",
+        }),
+    });
+}
+
+// Get selected day from URL or default to today
+const url = new URL(Astro.request.url);
+const selectedDate = url.searchParams.get("date") || days[0].date;
+const selectedDay = days.find((d) => d.date === selectedDate) || days[0];
+
+let schedule: any[] = [];
+let error = false;
+
+try {
+    schedule = await getSchedule(selectedDate);
+} catch (e) {
+    error = true;
+}
+---
+
+<Layout title="Schedule - Tsukino">
+    <Navbar client:load />
+
+    <main class="container schedule-page">
+        <header class="page-header">
+            <h1>📅 Airing Schedule</h1>
+            <p class="subtitle">See what's airing this week</p>
+        </header>
+
+        <!-- Day Tabs -->
+        <div class="day-tabs">
+            {
+                days.map((day) => (
+                    <a
+                        href={`/schedule?date=${day.date}`}
+                        class={`day-tab ${day.date === selectedDate ? "active" : ""}`}
+                        title={day.fullLabel}
+                    >
+                        <span class="day-label">{day.label}</span>
+                        <span class="day-date">
+                            {new Date(day.date).getDate()}
+                        </span>
+                    </a>
+                ))
+            }
+        </div>
+
+        <h2 class="selected-date">{selectedDay.fullLabel}</h2>
+
+        {
+            error ? (
+                <div class="error-state">
+                    <p>Failed to load schedule. Please try again.</p>
+                    <a
+                        href={`/schedule?date=${selectedDate}`}
+                        class="btn btn-primary"
+                    >
+                        Retry
+                    </a>
+                </div>
+            ) : schedule.length > 0 ? (
+                <div class="anime-grid">
+                    {schedule.map((item: any) => (
+                        <AnimeCard
+                            id={item.id}
+                            title={item.title}
+                            image={item.image}
+                            type={item.type}
+                            releaseDate={item.releaseDate}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div class="empty-state">
+                    <p>No anime scheduled for this day.</p>
+                </div>
+            )
+        }
+    </main>
+</Layout>
+
+<style>
+    .schedule-page {
+        padding-top: var(--spacing-2xl);
+        padding-bottom: var(--spacing-2xl);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .subtitle {
+        color: var(--color-text-secondary);
+    }
+
+    .day-tabs {
+        display: flex;
+        gap: var(--spacing-sm);
+        overflow-x: auto;
+        padding-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+        justify-content: center;
+    }
+
+    .day-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        min-width: 70px;
+        transition: all var(--transition-fast);
+    }
+
+    .day-tab:hover {
+        border-color: var(--color-accent);
+        transform: translateY(-2px);
+    }
+
+    .day-tab.active {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    .day-tab.active .day-label,
+    .day-tab.active .day-date {
+        color: var(--color-bg-primary);
+    }
+
+    .day-label {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+        font-weight: 500;
+    }
+
+    .day-date {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-text-primary);
+    }
+
+    .selected-date {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: var(--spacing-lg);
+        color: var(--color-text-secondary);
+    }
+
+    .anime-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .error-state,
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-2xl);
+        color: var(--color-text-muted);
+        text-align: center;
+    }
+</style>

@@ -1,0 +1,115 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.svelte';
+import HeroSpotlight from '../components/HeroSpotlight.svelte';
+import Section from '../components/Section.svelte';
+import AnimeCard from '../components/AnimeCard.svelte';
+import { getSpotlight, getNewReleases, getRecentEpisodes, getRecentlyAdded } from '../lib/api';
+
+// Fetch all data in parallel
+const [spotlightData, newReleasesData, recentEpisodesData, recentlyAddedData] = await Promise.all([
+  getSpotlight().catch(() => []),
+  getNewReleases().catch(() => ({ results: [] })),
+  getRecentEpisodes().catch(() => ({ results: [] })),
+  getRecentlyAdded().catch(() => ({ results: [] })),
+]);
+
+const spotlight = spotlightData.slice(0, 5);
+const newReleases = newReleasesData.results?.slice(0, 12) || [];
+const recentEpisodes = recentEpisodesData.results?.slice(0, 12) || [];
+const recentlyAdded = recentlyAddedData.results?.slice(0, 12) || [];
+---
+
+<Layout title="Tsukino - Ultra-Fast Anime Streaming">
+  <Navbar client:load />
+  
+  <main class="container">
+    <!-- Hero Spotlight -->
+    {spotlight.length > 0 && (
+      <HeroSpotlight items={spotlight} client:load />
+    )}
+    
+    <!-- New Releases -->
+    {newReleases.length > 0 && (
+      <Section title="🔥 New Releases" viewAllLink="/browse/new-releases">
+        <div class="grid-anime">
+          {newReleases.map((anime: any) => (
+            <AnimeCard
+              id={anime.id}
+              title={anime.title}
+              image={anime.image}
+              type={anime.type}
+              episodeCount={anime.episodeCount || anime.episodes}
+            />
+          ))}
+        </div>
+      </Section>
+    )}
+    
+    <!-- Recent Episodes -->
+    {recentEpisodes.length > 0 && (
+      <Section title="📺 Recently Updated" viewAllLink="/browse/recent-episodes">
+        <div class="grid-anime">
+          {recentEpisodes.map((anime: any) => (
+            <AnimeCard
+              id={anime.id}
+              title={anime.title}
+              image={anime.image}
+              type={anime.type}
+              episodeCount={anime.episodeCount || anime.episodes}
+            />
+          ))}
+        </div>
+      </Section>
+    )}
+    
+    <!-- Recently Added -->
+    {recentlyAdded.length > 0 && (
+      <Section title="✨ Recently Added" viewAllLink="/browse/recently-added">
+        <div class="grid-anime">
+          {recentlyAdded.map((anime: any) => (
+            <AnimeCard
+              id={anime.id}
+              title={anime.title}
+              image={anime.image}
+              type={anime.type}
+              episodeCount={anime.episodeCount || anime.episodes}
+            />
+          ))}
+        </div>
+      </Section>
+    )}
+  </main>
+  
+  <footer class="footer">
+    <div class="container">
+      <p>Tsukino - Built for anime lovers 🌙</p>
+      <p class="footer-note">Educational project. All content sourced from external APIs.</p>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  main {
+    padding-top: var(--spacing-xl);
+    padding-bottom: var(--spacing-2xl);
+    min-height: 100vh;
+  }
+  
+  .footer {
+    border-top: 1px solid var(--color-border);
+    padding: var(--spacing-xl) 0;
+    text-align: center;
+  }
+  
+  .footer p {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .footer-note {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+</style>

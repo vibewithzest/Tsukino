@@ -1,0 +1,167 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.svelte';
+import AnimeCard from '../components/AnimeCard.svelte';
+import { searchAnime } from '../lib/api';
+
+const query = Astro.url.searchParams.get('q') || '';
+const page = parseInt(Astro.url.searchParams.get('page') || '1');
+
+let results: any[] = [];
+let hasNextPage = false;
+let error = false;
+
+if (query) {
+  try {
+    const data = await searchAnime(query, page);
+    results = data.results || [];
+    hasNextPage = data.hasNextPage || false;
+  } catch (e) {
+    error = true;
+  }
+}
+---
+
+<Layout title={`Search: ${query} - Tsukino`}>
+  <Navbar client:load />
+  
+  <main class="container search-page">
+    <div class="search-header">
+      <h1>
+        {query ? (
+          <>Search results for "<span class="text-gradient">{query}</span>"</>
+        ) : (
+          'Search Anime'
+        )}
+      </h1>
+      
+      {results.length > 0 && (
+        <p class="result-count">{results.length} results found</p>
+      )}
+    </div>
+    
+    {!query && (
+      <div class="search-prompt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <p>Enter a search term to find your favorite anime</p>
+      </div>
+    )}
+    
+    {query && results.length === 0 && !error && (
+      <div class="no-results">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
+        <p>No results found for "{query}"</p>
+        <span>Try a different search term</span>
+      </div>
+    )}
+    
+    {error && (
+      <div class="error">
+        <p>Something went wrong. Please try again.</p>
+      </div>
+    )}
+    
+    {results.length > 0 && (
+      <>
+        <div class="grid-anime">
+          {results.map((anime: any) => (
+            <AnimeCard
+              id={anime.id}
+              title={anime.title}
+              image={anime.image}
+              type={anime.type}
+              episodeCount={anime.episodeCount || anime.episodes}
+            />
+          ))}
+        </div>
+        
+        <div class="pagination">
+          {page > 1 && (
+            <a href={`/search?q=${encodeURIComponent(query)}&page=${page - 1}`} class="btn btn-ghost">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M15 19l-7-7 7-7v14z"/>
+              </svg>
+              Previous
+            </a>
+          )}
+          
+          <span class="page-info">Page {page}</span>
+          
+          {hasNextPage && (
+            <a href={`/search?q=${encodeURIComponent(query)}&page=${page + 1}`} class="btn btn-ghost">
+              Next
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M9 5l7 7-7 7V5z"/>
+              </svg>
+            </a>
+          )}
+        </div>
+      </>
+    )}
+  </main>
+</Layout>
+
+<style>
+  .search-page {
+    padding-top: var(--spacing-xl);
+    padding-bottom: var(--spacing-2xl);
+    min-height: 80vh;
+  }
+  
+  .search-header {
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .search-header h1 {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .result-count {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+  
+  .search-prompt,
+  .no-results,
+  .error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+  
+  .search-prompt svg,
+  .no-results svg {
+    width: 64px;
+    height: 64px;
+    opacity: 0.5;
+  }
+  
+  .no-results span {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-2xl);
+  }
+  
+  .page-info {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+  }
+</style>

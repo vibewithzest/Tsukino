@@ -1,0 +1,137 @@
+---
+export const prerender = false;
+
+import Layout from "../../layouts/Layout.astro";
+import Navbar from "../../components/Navbar.svelte";
+import AnimeCard from "../../components/AnimeCard.svelte";
+import { getONA } from "../../lib/api";
+
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get("page") || "1");
+
+let data;
+let error = false;
+
+try {
+    data = await getONA(page);
+} catch (e) {
+    error = true;
+}
+
+const anime = data?.results || [];
+const hasNextPage = data?.hasNextPage || false;
+---
+
+<Layout title="ONA - Tsukino">
+    <Navbar client:load />
+
+    <main class="container browse-page">
+        <header class="page-header">
+            <h1>🌐 ONA</h1>
+            <p class="subtitle">Original Net Animation - Web exclusive anime</p>
+        </header>
+
+        {
+            error ? (
+                <div class="error-state">
+                    <p>Failed to load ONAs. Please try again.</p>
+                    <a href="/browse/ona" class="btn btn-primary">
+                        Retry
+                    </a>
+                </div>
+            ) : (
+                <>
+                    <div class="anime-grid">
+                        {anime.map((item: any) => (
+                            <AnimeCard
+                                id={item.id}
+                                title={item.title}
+                                image={item.image}
+                                type={item.type}
+                                releaseDate={item.releaseDate}
+                            />
+                        ))}
+                    </div>
+
+                    {anime.length === 0 && (
+                        <div class="empty-state">
+                            <p>No ONAs found.</p>
+                        </div>
+                    )}
+
+                    <div class="pagination">
+                        {page > 1 && (
+                            <a
+                                href={`/browse/ona?page=${page - 1}`}
+                                class="btn btn-ghost"
+                            >
+                                ← Previous
+                            </a>
+                        )}
+                        <span class="page-info">Page {page}</span>
+                        {hasNextPage && (
+                            <a
+                                href={`/browse/ona?page=${page + 1}`}
+                                class="btn btn-primary"
+                            >
+                                Next →
+                            </a>
+                        )}
+                    </div>
+                </>
+            )
+        }
+    </main>
+</Layout>
+
+<style>
+    .browse-page {
+        padding-top: var(--spacing-2xl);
+        padding-bottom: var(--spacing-2xl);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .subtitle {
+        color: var(--color-text-secondary);
+    }
+
+    .anime-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-xl);
+    }
+
+    .page-info {
+        color: var(--color-text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .error-state,
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-2xl);
+        color: var(--color-text-muted);
+    }
+</style>
