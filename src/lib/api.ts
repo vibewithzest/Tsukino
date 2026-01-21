@@ -179,9 +179,37 @@ export async function getAnimeInfo(id: string): Promise<AnimeInfo> {
  * @param dub - Whether to get dubbed version
  */
 export async function getEpisodeSources(episodeId: string, dub = false): Promise<EpisodeSource> {
-  // Episode IDs from AnimeKai contain special characters like $ that need encoding
-  const encodedId = encodeURIComponent(episodeId);
-  return fetchAPI<EpisodeSource>(`/watch/${encodedId}?dub=${dub}`);
+  try {
+    // Episode IDs from AnimeKai contain special characters like $ that need encoding
+    const encodedId = encodeURIComponent(episodeId);
+    return await fetchAPI<EpisodeSource>(`/watch/${encodedId}?dub=${dub}`);
+  } catch (err) {
+    console.warn("AnimeKai watch failed, trying Gogoanime fallback...");
+    try {
+      // FALBACK STRATEGY: Switch to Gogoanime
+      // 1. Clean the ID (remove params and AnimeKai random suffixes)
+      let cleanId = episodeId.split("$")[0];
+      if (cleanId.match(/-[a-z0-9]{2,5}$/)) {
+        cleanId = cleanId.replace(/-[a-z0-9]{2,5}$/, "");
+      }
+
+      // 2. Extract Episode Number
+      const epMatch = episodeId.match(/ep=(\d+)/);
+      const epNum = epMatch ? epMatch[1] : "1";
+
+      // 3. Construct Gogoanime ID (guesswork)
+      // Format: slug-dub-episode-N or slug-episode-N
+      const gogoId = `${cleanId}${dub ? '-dub' : ''}-episode-${epNum}`;
+      console.log(`[Fallback] Trying Gogo ID: ${gogoId}`);
+
+      const res = await fetch(`${API_BASE}/anime/gogoanime/watch/${gogoId}`);
+      if (!res.ok) throw new Error("Fallback failed");
+      return await res.json();
+    } catch (fallbackErr) {
+      console.error("All sources failed");
+      throw err; // Throw original error to show UI message
+    }
+  }
 }
 
 /**
