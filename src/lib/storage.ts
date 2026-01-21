@@ -44,19 +44,29 @@ export function getWatchlist(): WatchlistItem[] {
     return data ? JSON.parse(data) : [];
 }
 
-export function addToWatchlist(item: Omit<WatchlistItem, 'addedAt'>): void {
-    if (!isBrowser) return;
+export function addToWatchlist(item: Omit<WatchlistItem, 'addedAt'>): boolean {
+    if (!isBrowser) return false;
     const watchlist = getWatchlist();
     if (!watchlist.find(w => w.id === item.id)) {
         watchlist.unshift({ ...item, addedAt: Date.now() });
         localStorage.setItem(STORAGE_KEYS.WATCHLIST, JSON.stringify(watchlist));
+        // Show toast notification
+        if ((window as any).showToast) {
+            (window as any).showToast(`Added "${item.title}" to watchlist`, 'success');
+        }
+        return true;
     }
+    return false;
 }
 
-export function removeFromWatchlist(id: string): void {
+export function removeFromWatchlist(id: string, title?: string): void {
     if (!isBrowser) return;
     const watchlist = getWatchlist().filter(w => w.id !== id);
     localStorage.setItem(STORAGE_KEYS.WATCHLIST, JSON.stringify(watchlist));
+    // Show toast notification
+    if ((window as any).showToast) {
+        (window as any).showToast(title ? `Removed "${title}" from watchlist` : 'Removed from watchlist', 'info');
+    }
 }
 
 export function isInWatchlist(id: string): boolean {

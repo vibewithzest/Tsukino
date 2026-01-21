@@ -1,5 +1,6 @@
 ---
-import '../styles/global.css';
+import "../styles/global.css";
+import Toast from "../components/Toast.svelte";
 
 interface Props {
   title?: string;
@@ -7,10 +8,10 @@ interface Props {
   image?: string;
 }
 
-const { 
-  title = 'Tsukino - Ultra-Fast Anime Streaming',
-  description = 'Discover and watch your favorite anime with blazing fast speeds.',
-  image = '/og-image.jpg'
+const {
+  title = "Tsukino - Ultra-Fast Anime Streaming",
+  description = "Discover and watch your favorite anime with blazing fast speeds.",
+  image = "/og-image.jpg",
 } = Astro.props;
 ---
 
@@ -20,22 +21,23 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    
+
     <!-- SEO -->
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#0a0a0f" />
-    
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={image} />
-    
+
     <!-- Preconnect to API -->
-    <link rel="preconnect" href="http://localhost:3000" />
+    <link rel="preconnect" href="https://consumet-api-roan.vercel.app" />
   </head>
   <body>
     <slot />
+    <Toast client:load />
   </body>
 </html>
