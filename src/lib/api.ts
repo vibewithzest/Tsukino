@@ -1,7 +1,8 @@
 // API Service for Tsukino - Uses AnimeKai provider from Consumet API
 // Complete implementation of all AnimeKai endpoints
 
-const API_BASE = import.meta.env.PUBLIC_API_URL || 'http://localhost:3001';
+// Use environment variable, or fallback to public Consumet API for production
+const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://consumet-api-two-nu.vercel.app';
 const PROVIDER = 'animekai';
 
 // ===========================================
